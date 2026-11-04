@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sindh district temperatures</title>
+<style>
+:root{--bg:#f3f5f6;--surface:#ffffff;--ink:#14212b;--muted:#586774;--grid:#dce2e6;--focus:#1d4ed8;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e161c;--surface:#16212a;--ink:#e7eef3;--muted:#93a3b0;--grid:#293641;--focus:#7aa2ff;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e161c;--surface:#16212a;--ink:#e7eef3;--muted:#93a3b0;--grid:#293641;--focus:#7aa2ff;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 "Avenir Next","Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+main{max-width:960px;margin:0 auto;padding:28px 16px 40px}
+h1{font-size:clamp(24px,4vw,34px);line-height:1.15;margin:0 0 6px;font-weight:700;letter-spacing:-.01em}
+.sub{margin:0 0 24px;color:var(--muted);max-width:68ch}
+section{background:var(--surface);border:1px solid var(--grid);border-radius:10px;padding:18px 18px 16px;margin-bottom:20px}
+h2{font-size:19px;margin:0 0 2px;font-weight:650}
+.desc{margin:0 0 12px;color:var(--muted);font-size:14px}
+.bar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:12px}
+label{font-size:13px;color:var(--muted);display:flex;gap:6px;align-items:center}
+select{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--grid);border-radius:6px;padding:5px 8px}
+select:focus-visible,.chip:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{position:relative}
+svg{display:block;max-width:100%}
+.lbl{fill:var(--muted);font-size:11px}
+.axis{fill:var(--muted);font-size:12px}
+.gl{stroke:var(--grid);stroke-width:1}
+.cell{stroke:var(--surface);stroke-width:1.5}
+.cell.hot{stroke:var(--ink);stroke-width:2}
+.peak{font-size:12px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.tip{position:absolute;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--grid);border-radius:8px;padding:7px 10px;font-size:13px;box-shadow:0 4px 14px rgba(0,0,0,.18);z-index:5;white-space:nowrap}
+.tip[hidden]{display:none}
+.tip b{font-weight:650}
+.tip .r{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.tip .r span:last-child{font-variant-numeric:tabular-nums;margin-left:12px}
+.tip i,.chip i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.scale{position:relative;height:34px;margin:12px 0 0 44px;max-width:420px}
+.scale .g{height:10px;border-radius:3px}
+.scale span{white-space:nowrap;position:absolute;top:14px;transform:translateX(-50%);font-size:11px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--grid);border-radius:999px;padding:4px 12px 4px 10px;cursor:pointer;display:inline-flex;align-items:center}
+.chip.off{opacity:.45;text-decoration:line-through}
+.keys{display:flex;gap:16px;font-size:13px;color:var(--muted);align-items:center}
+.keys svg{display:inline-block;vertical-align:middle;margin-right:6px}
+.note{color:var(--muted);font-size:12.5px;margin:10px 0 0;max-width:76ch}
+.cap{font-size:14px;margin:0 0 6px}
+.empty{color:var(--muted);padding:40px 0;text-align:center}
+.filter{display:flex;gap:10px;align-items:center;margin:0 0 16px}
+.filter label{font-size:14px;font-weight:600;color:var(--ink)}
+.filter select{font-size:15px;font-weight:600;padding:8px 12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,380px));gap:14px;margin-bottom:20px}
+.card{background:var(--surface);border:1px solid var(--grid);border-radius:10px;padding:14px 16px}
+.card h3{margin:0 0 6px;font-size:13.5px;font-weight:600;color:var(--muted)}
+.card .v{font-size:30px;line-height:1.1;font-weight:700;font-variant-numeric:tabular-nums}
+.card .s{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.cv{font-size:10.5px;pointer-events:none;font-variant-numeric:tabular-nums}
+.drop{border:2px dashed var(--grid);border-radius:10px;padding:34px 20px;text-align:center}
+.drop.over{border-color:var(--focus)}
+.drop h2{margin-bottom:6px}
+.drop .desc{max-width:60ch;margin:0 auto 16px}
+.btn{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--grid);border-radius:6px;padding:7px 14px;cursor:pointer}
+.btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.filter .btn{margin-left:auto}
+.yl{display:flex;flex-wrap:wrap;gap:6px 20px;margin:0 0 10px;font-weight:700;font-size:15px}
+.yl i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.old{fill:none;stroke:#c9cfd7;stroke-width:1.3}
+@media (prefers-color-scheme:dark){.old{stroke:#3b4854}}
+.err{color:#d64545;font-weight:600;margin:0 0 14px}
+.err:empty,#prog:empty{display:none}
+@media (prefers-reduced-motion:no-preference){.cell{transition:stroke .08s}}
+</style>
+</head>
+<body>
+<main>
+<h1>Sindh district temperatures</h1>
+<p class="sub" id="sub">Load live NASA POWER data or your own CSV to build the charts.</p>
+<p class="err" id="err" role="alert"></p>
+<p class="sub" id="prog"></p>
+<section id="loader">
+<div class="drop" id="drop">
+<h2>Load data</h2>
+<p class="desc">Load daily maximum temperatures live from NASA POWER for the six districts, 2000 to yesterday. Or choose your own CSV with the columns DISTRICT, Year, Month, MAX_TEMP_C, MAX_TEMP_DATE and N_DAYS, or drop it here.</p>
+<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button type="button" class="btn" id="live">Load from NASA POWER</button><button type="button" class="btn" id="pick">Choose CSV file</button></div>
+</div>
+</section>
+<input type="file" id="file" accept=".csv,text/csv" hidden>
+<div id="app" hidden>
+<div class="filter"><label for="gdist">District</label><select id="gdist"></select><button type="button" class="btn" id="replace">Load another file</button><button type="button" class="btn" id="refresh" style="margin-left:0">Refresh data</button><button type="button" class="btn" id="savecopy" style="margin-left:0">Save with data</button><button type="button" class="btn" id="reset" style="margin-left:0">Reset</button></div>
+<div class="cards" id="cards"></div>
+<section>
+<h2>Monthly maximum temperature by year</h2>
+<p class="desc" id="ldesc"></p>
+<div class="yl" id="llegend"></div>
+<div class="wrap" id="lwrap"><div id="line"></div><div class="tip" id="ltip" hidden></div></div>
+<p class="note">Months with fewer than 20 days of data are left out.</p>
+</section>
+<section>
+<h2>Maximum temperature by year and month</h2>
+<p class="desc">Each cell shows the hottest day of that month in °C. With all districts selected, it shows the hottest district. Hover a cell for details.</p>
+<p class="cap" id="hcap"></p>
+<div class="wrap" id="hwrap"><div id="heat"></div><div class="tip" id="htip" hidden></div></div>
+<div class="scale" id="hscale"></div>
+</section>
+</div>
+</main>
+<script type="text/csv" id="embedded"></script>
+<script>
+(function(){
+'use strict';
+const SRC='<!doctype html>\n'+document.documentElement.outerHTML;
+let curText=null;
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MF=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const PREF=['JACOBABAD','LARKANA','DADU','MATIARI','THATTA','BADIN'];
+const COLS={JACOBABAD:'#2b7bba',LARKANA:'#d4621a',DADU:'#1f9e74',MATIARI:'#d9a21b',THATTA:'#c97bb0',BADIN:'#7c6bc4'};
+const FALL=['#4a5568','#0ea5e9','#a855f7','#84cc16','#ef4444'];
+const nm=s=>s.charAt(0)+s.slice(1).toLowerCase();
+const f1=v=>v.toFixed(1);
+const $=id=>document.getElementById(id);
+const rgb=c=>'rgb('+c.join(',')+')';
+const MINN=20,KEY='sindh-temp-csv-v1';
+let D=null;
+const dim=(y,m)=>new Date(y,m+1,0).getDate();
+const colOf=d=>COLS[d]||FALL[Math.max(0,D.districts.indexOf(d))%FALL.length];
+/*PURE-START*/
+function parseCSV(text){
+  const lines=text.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim()!=='');
+  if(lines.length<2)throw new Error('The file has no data rows.');
+  const split=l=>{const out=[];let cur='',q=false;for(let i=0;i<l.length;i++){const c=l[i];if(c==='"'){if(q&&l[i+1]==='"'){cur+='"';i++}else q=!q}else if(c===','&&!q){out.push(cur);cur=''}else cur+=c}out.push(cur);return out};
+  const head=split(lines[0]).map(h=>h.trim());
+  const need=['DISTRICT','Year','Month','MAX_TEMP_C','MAX_TEMP_DATE','N_DAYS'];
+  const miss=need.filter(c=>head.indexOf(c)<0);
+  if(miss.length)throw new Error('Missing column'+(miss.length>1?'s':'')+': '+miss.join(', ')+'.');
+  const ix={};need.forEach(c=>{ix[c]=head.indexOf(c)});
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const p=split(lines[i]);
+    const y=+p[ix.Year],m=+p[ix.Month],mx=parseFloat(p[ix.MAX_TEMP_C]),n=parseInt(p[ix.N_DAYS],10);
+    if(!(y>1900&&m>=1&&m<=12)||isNaN(mx))continue;
+    rows.push({d:(p[ix.DISTRICT]||'').trim().toUpperCase(),y:y,m:m-1,mx:mx,dt:(p[ix.MAX_TEMP_DATE]||'').trim(),n:isNaN(n)?0:n});
+  }
+  if(!rows.length)throw new Error('No valid data rows were found.');
+  return rows;
+}
+function build(rows){
+  const ds=[...new Set(rows.map(r=>r.d))].sort((a,b)=>{const ia=PREF.indexOf(a),ib=PREF.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b)});
+  const years=[...new Set(rows.map(r=>r.y))].sort((a,b)=>a-b);
+  const yi={};years.forEach((y,i)=>{yi[y]=i});
+  const mk=()=>years.map(()=>new Array(12).fill(null));
+  const o={districts:ds,years:years,mx:{},dt:{},n:{},fy:[],lastm:[]};
+  ds.forEach(d=>{o.mx[d]=mk();o.dt[d]=mk();o.n[d]=mk()});
+  rows.forEach(r=>{const i=yi[r.y];o.mx[r.d][i][r.m]=r.mx;o.dt[r.d][i][r.m]=r.dt;o.n[r.d][i][r.m]=r.n});
+  years.forEach((y,i)=>{
+    let full=true,lm=-1;
+    ds.forEach(d=>{for(let m=0;m<12;m++){const k=o.n[d][i][m];if(k==null||k<dim(y,m))full=false;if(k!=null&&k>=MINN&&m>lm)lm=m}});
+    if(full)o.fy.push(y);
+    o.lastm.push(lm);
+  });
+  return o;
+}
+function cellv(kind,d,i,m){const k=D.n[d][i][m];return k!=null&&k>=MINN?D.mx[d][i][m]:null}
+function stats(ds){
+  let best=null;
+  ds.forEach(d=>D.years.forEach((y,i)=>{for(let m=0;m<12;m++){const v=D.mx[d][i][m];if(v!=null&&(!best||v>best.v))best={v:v,d:d,y:y,m:m,dt:D.dt[d][i][m]}}}));
+  const ann=[];
+  D.years.forEach((y,i)=>{
+    let tot=0,ok=true;
+    for(let a=0;a<ds.length&&ok;a++){
+      const d=ds[a];let s=0,n=0;
+      for(let m=0;m<12;m++){const k=D.n[d][i][m];if(k==null||k<dim(y,m)){ok=false;break}s+=D.mx[d][i][m];n++}
+      if(ok)tot+=s/n;
+    }
+    if(ok)ann.push([y,tot/ds.length]);
+  });
+  let wy=null,avg=0,sl=null;
+  if(ann.length){wy=ann[0];ann.forEach(a=>{if(a[1]>wy[1])wy=a});avg=ann.reduce((s,a)=>s+a[1],0)/ann.length}
+  if(ann.length>=3){const mx=ann.reduce((s,a)=>s+a[0],0)/ann.length;let sxy=0,sxx=0;ann.forEach(a=>{sxy+=(a[0]-mx)*(a[1]-avg);sxx+=(a[0]-mx)*(a[0]-mx)});sl=sxy/sxx*10}
+  return {best:best,ann:ann,wy:wy,avg:avg,sl:sl};
+}
+/*PURE-END*/
+const STOPS=[[24,[59,91,169]],[31,[127,181,201]],[38,[242,233,196]],[43,[240,169,90]],[47,[217,96,43]],[52,[143,29,29]]];
+function carr(v){
+  if(v<=STOPS[0][0])return STOPS[0][1];
+  for(let i=1;i<STOPS.length;i++){if(v<=STOPS[i][0]){const a=STOPS[i-1][0],b=STOPS[i][0],ca=STOPS[i-1][1],cb=STOPS[i][1],t=(v-a)/(b-a);return ca.map((c,j)=>Math.round(c+(cb[j]-c)*t))}}
+  return STOPS[STOPS.length-1][1];
+}
+const color=v=>rgb(carr(v));
+const sg=(v,p)=>(v<0?'−':'+')+Math.abs(v).toFixed(p);
+function fmtDate(dt,y,m){return /^\d{4}-\d{2}-\d{2}$/.test(dt)?(+dt.slice(8))+' '+MN[+dt.slice(5,7)-1]+' '+dt.slice(0,4):MF[m]+' '+y}
+function showTip(wrap,tip,html,cx,cy){
+  tip.innerHTML=html;tip.hidden=false;
+  const r=wrap.getBoundingClientRect();
+  let l=cx-r.left+14,t=cy-r.top+14;const tw=tip.offsetWidth,th=tip.offsetHeight;
+  if(l+tw>r.width)l=cx-r.left-tw-14;if(l<0)l=0;
+  if(t+th>r.height)t=r.height-th;if(t<0)t=0;
+  tip.style.left=l+'px';tip.style.top=t+'px';
+}
+const gsel=$('gdist');
+const sel=()=>gsel.value==='ALL'?D.districts:[gsel.value];
+
+/* Cards */
+function drawCards(){
+  const all=gsel.value==='ALL',s=stats(sel());
+  let h='<div class="card"><h3>Hottest month on record</h3><div class="v">'+f1(s.best.v)+' °C</div><p class="s">'+(all?nm(s.best.d)+', ':'')+fmtDate(s.best.dt,s.best.y,s.best.m)+'. Hottest day of that month.</p></div>';
+  $('cards').innerHTML=h;
+}
+
+/* Trend chart: one line per year */
+let geo=null;
+const PAL_L=['#f0a04b','#2a9d8f','#3d6fc4','#e4572e','#6b1a1a'],PAL_D=['#f0a04b','#35b8a6','#6f9bea','#f0714a','#e8a0a0'];
+const pal=()=>window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?PAL_D:PAL_L;
+function hinfo(ds,i,m){let b=null;ds.forEach(d=>{const v=cellv('max',d,i,m);if(v!=null&&(b==null||v>b.v))b={v:v,d:d,dt:D.dt[d][i][m]}});return b}
+function drawLine(){
+  const ds=sel(),yrs=D.years,NY=yrs.length,HL=Math.min(5,NY),h0=NY-HL,P=pal(),one=gsel.value!=='ALL';
+  $('ldesc').textContent='The hottest day in each month, one line per year. '+(one?nm(gsel.value)+'.':'All districts, showing the hottest district each month.')+' Latest '+HL+' years highlighted, earlier years in grey.';
+  $('llegend').innerHTML=yrs.slice(h0).map((y,j)=>'<span style="color:'+P[5-HL+j]+'"><i style="background:'+P[5-HL+j]+'"></i>'+y+'</span>').join('');
+  const V=yrs.map((y,i)=>{const a=[];for(let m=0;m<12;m++)a.push(hinfo(ds,i,m));return a});
+  let lo=Infinity,hi=-Infinity;V.forEach(row=>row.forEach(c=>{if(c){lo=Math.min(lo,c.v);hi=Math.max(hi,c.v)}}));
+  if(lo===Infinity){$('line').innerHTML='<p class="empty">No data for this selection.</p>';geo=null;return}
+  lo=Math.floor((lo-1)/5)*5;hi=Math.ceil((hi+1)/5)*5;
+  const W=Math.max(300,$('lwrap').clientWidth),H=Math.round(Math.max(320,Math.min(440,W*.56))),L=46,R=14,T=20,Bm=30,pad=16,x0=L+pad,xw=W-L-R-2*pad;
+  const x=m=>x0+xw*m/11,y=v=>T+(H-T-Bm)*(1-(v-lo)/(hi-lo));
+  const path=row=>{let q='',pen=false;row.forEach((c,m)=>{if(!c){pen=false;return}q+=(pen?'L':'M')+x(m).toFixed(1)+' '+y(c.v).toFixed(1)+' ';pen=true});return q};
+  let s='<svg width="'+W+'" height="'+H+'" role="img" aria-label="Monthly maximum temperature, one line per year">';
+  for(let g=lo;g<=hi;g+=5)s+='<line class="gl" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(g)+'" y2="'+y(g)+'"/><text class="lbl" x="'+(L-8)+'" y="'+(y(g)+4)+'" text-anchor="end">'+g+'</text>';
+  for(let m=0;m<12;m++)s+='<text class="lbl" x="'+x(m)+'" y="'+(H-10)+'" text-anchor="middle">'+(xw/11<36?MN[m].charAt(0):MN[m])+'</text>';
+  s+='<text class="axis" transform="translate(12 '+((T+H-Bm)/2)+') rotate(-90)" text-anchor="middle">°C</text>';
+  for(let i=0;i<h0;i++)s+='<path class="old" d="'+path(V[i])+'"/>';
+  let pk=null;
+  for(let i=h0;i<NY;i++){
+    const c=P[5-HL+i-h0];
+    s+='<path d="'+path(V[i])+'" fill="none" stroke="'+c+'" stroke-width="2.6" stroke-linejoin="round"/>';
+    V[i].forEach((b,m)=>{if(!b)return;s+='<circle cx="'+x(m)+'" cy="'+y(b.v)+'" r="4" fill="'+c+'"/>';if(!pk||b.v>pk.b.v)pk={b:b,i:i,m:m}});
+  }
+  if(pk){
+    const px=x(pk.m),py=y(pk.b.v),anc=px>W-160?'end':(px<160?'start':'middle'),ty=py<T+14?py+22:py-10;
+    s+='<text class="peak" x="'+px+'" y="'+ty+'" text-anchor="'+anc+'">'+(one?'':nm(pk.b.d)+', ')+f1(pk.b.v)+' °C ('+fmtDate(pk.b.dt,yrs[pk.i],pk.m)+')</text>';
+  }
+  s+='<line id="hv" class="gl" y1="'+T+'" y2="'+(H-Bm)+'" stroke="var(--muted)" style="display:none"/>';
+  s+='<rect id="ov" x="'+L+'" y="'+T+'" width="'+(W-L-R)+'" height="'+(H-T-Bm)+'" fill="transparent"/></svg>';
+  $('line').innerHTML=s;
+  geo={x0:x0,xw:xw,x:x,V:V,h0:h0,NY:NY,HL:HL,P:P};
+}
+function onMove(e){
+  if(!geo)return;
+  const r=$('line').getBoundingClientRect(),px=e.clientX-r.left;
+  let m=Math.round((px-geo.x0)/(geo.xw/11));m=Math.max(0,Math.min(11,m));
+  const hv=$('hv');hv.setAttribute('x1',geo.x(m));hv.setAttribute('x2',geo.x(m));hv.style.display='';
+  let h='<b>'+MF[m]+'</b>';
+  for(let i=geo.NY-1;i>=geo.h0;i--){const c=geo.V[i][m];h+='<div class="r"><span><i style="background:'+geo.P[5-geo.HL+i-geo.h0]+'"></i>'+D.years[i]+'</span><span>'+(c?f1(c.v)+' °C':'–')+'</span></div>'}
+  let lo=null,hi=null;
+  for(let i=0;i<geo.h0;i++){const c=geo.V[i][m];if(c){if(lo==null||c.v<lo)lo=c.v;if(hi==null||c.v>hi)hi=c.v}}
+  if(lo!=null)h+='<div class="r" style="color:var(--muted);font-size:12px"><span>Earlier years</span><span>'+f1(lo)+'–'+f1(hi)+' °C</span></div>';
+  showTip($('lwrap'),$('ltip'),h,e.clientX,e.clientY);
+}
+$('line').addEventListener('pointermove',e=>{if(e.target.id==='ov')onMove(e)});
+$('line').addEventListener('pointerdown',e=>{if(e.target.id==='ov')onMove(e)});
+$('line').addEventListener('pointerleave',()=>{$('ltip').hidden=true;const hv=$('hv');if(hv)hv.style.display='none'});
+
+/* Heatmap */
+function hval(ds,i,m){let b=null;ds.forEach(d=>{const v=cellv('max',d,i,m);if(v!=null&&(b==null||v>b))b=v});return b}
+function drawHeat(){
+  const ds=sel(),yrs=D.years,NY=yrs.length,W=Math.max(300,$('hwrap').clientWidth),L=44,T=22,cw=(W-L-4)/12,ch=20,H=T+NY*ch+4;
+  let s='<svg width="'+W+'" height="'+H+'" role="img" aria-label="Heatmap of monthly maximum temperature by year and month">';
+  for(let m=0;m<12;m++)s+='<text class="lbl" x="'+(L+cw*m+cw/2)+'" y="14" text-anchor="middle">'+MN[m]+'</text>';
+  let best=null;
+  for(let i=0;i<NY;i++){
+    s+='<text class="lbl" x="'+(L-8)+'" y="'+(T+i*ch+ch/2+4)+'" text-anchor="end">'+yrs[i]+'</text>';
+    for(let m=0;m<12;m++){
+      const v=hval(ds,i,m);if(v==null)continue;
+      if(!best||v>best.v)best={v:v,i:i,m:m};
+      s+='<rect class="cell" x="'+(L+cw*m)+'" y="'+(T+i*ch)+'" width="'+cw+'" height="'+ch+'" fill="'+color(v)+'" data-y="'+yrs[i]+'" data-m="'+m+'" data-v="'+v+'"/>';
+      const c=carr(v),tc=(0.299*c[0]+0.587*c[1]+0.114*c[2])>150?'#14212b':'#ffffff';
+      s+='<text class="cv" x="'+(L+cw*m+cw/2)+'" y="'+(T+i*ch+ch/2+3.5)+'" text-anchor="middle" fill="'+tc+'">'+(cw>=38?v.toFixed(1):Math.round(v))+'</text>';
+    }
+  }
+  $('heat').innerHTML=s+'</svg>';
+  $('hcap').textContent=best?'Hottest month: '+MF[best.m]+' '+yrs[best.i]+' at '+f1(best.v)+' °C.':'';
+}
+let hot=null;
+$('heat').addEventListener('pointermove',e=>{
+  const t=e.target;if(hot&&hot!==t)hot.classList.remove('hot');
+  if(t.dataset&&t.dataset.v){t.classList.add('hot');hot=t;showTip($('hwrap'),$('htip'),'<b>'+MF[+t.dataset.m]+' '+t.dataset.y+'</b><br>'+f1(+t.dataset.v)+' °C hottest day',e.clientX,e.clientY)}
+  else{$('htip').hidden=true;hot=null}
+});
+$('heat').addEventListener('pointerleave',()=>{$('htip').hidden=true;if(hot){hot.classList.remove('hot');hot=null}});
+(function(){
+  const lo=22,hi=52,n=30,g=[];
+  for(let i=0;i<=n;i++)g.push(color(lo+(hi-lo)*i/n)+' '+(i/n*100).toFixed(1)+'%');
+  let h='<div class="g" style="background:linear-gradient(90deg,'+g.join(',')+')"></div>';
+  for(let t=25;t<=50;t+=5)h+='<span style="left:'+((t-lo)/(hi-lo)*100)+'%">'+t+' °C</span>';
+  $('hscale').innerHTML=h;
+})();
+
+/* Live data from NASA POWER */
+const DIST={BADIN:[24.7184,68.8463],DADU:[26.8702,67.4981],JACOBABAD:[28.2098,68.4818],LARKANA:[27.5255,68.1941],MATIARI:[25.7664,68.4529],THATTA:[24.7325,67.7551]};
+const NASA='https://power.larc.nasa.gov/api/temporal/daily/point';
+async function fetchChunk(lat,lon,a,b){
+  const u=NASA+'?parameters=T2M_MAX&community=AG&longitude='+lon+'&latitude='+lat+'&start='+a+'&end='+b+'&format=JSON';
+  for(let k=0;k<2;k++){
+    try{
+      const r=await fetch(u);if(!r.ok)throw new Error('HTTP '+r.status);
+      const j=await r.json(),o=j&&j.properties&&j.properties.parameter&&j.properties.parameter.T2M_MAX;
+      if(!o)throw new Error('unexpected response');return o;
+    }catch(e){if(k)throw e}
+  }
+}
+let busy=false;
+function setBusy(on){busy=on;['live','refresh','pick','replace'].forEach(id=>{const el=$(id);if(el)el.disabled=on})}
+async function loadLive(){
+  if(busy)return;
+  setBusy(true);$('err').textContent='';
+  const e=new Date(Date.now()-86400000),pd=n=>String(n).padStart(2,'0');
+  const endS=''+e.getUTCFullYear()+pd(e.getUTCMonth()+1)+pd(e.getUTCDate());
+  const chunks=[['20000101','20091231'],['20100101','20191231'],['20200101',endS]];
+  const names=Object.keys(DIST),total=names.length*chunks.length;let done=0;
+  const rows=['DISTRICT,Latitude,Longitude,Year,Month,MAX_TEMP_C,MAX_TEMP_DATE,N_DAYS'];
+  $('prog').textContent='Loading NASA POWER data, 0 of '+total+' requests done.';
+  const jobs=names.map(name=>async()=>{
+    const lat=DIST[name][0],lon=DIST[name][1],agg={};
+    for(const c of chunks){
+      const o=await fetchChunk(lat,lon,c[0],c[1]);done++;
+      $('prog').textContent='Loading NASA POWER data, '+done+' of '+total+' requests done.';
+      for(const k in o){
+        const v=o[k];if(v==null||v<-900)continue;
+        const ym=k.slice(0,6),g=agg[ym]||(agg[ym]={mx:-Infinity,dt:'',n:0});
+        g.n++;if(v>g.mx){g.mx=v;g.dt=k.slice(0,4)+'-'+k.slice(4,6)+'-'+k.slice(6,8)}
+      }
+    }
+    Object.keys(agg).sort().forEach(ym=>{const g=agg[ym];rows.push([name,lat,lon,ym.slice(0,4),+ym.slice(4),g.mx.toFixed(1),g.dt,g.n].join(','))});
+  });
+  let idx=0;const worker=async()=>{while(idx<jobs.length){const j=jobs[idx++];await j()}};
+  try{
+    await Promise.all([worker(),worker(),worker()]);
+    load(rows.join('\n'));
+  }catch(err){
+    $('err').textContent='Could not load live data ('+err.message+'). Live loading needs internet access and works when this file is opened from your computer or a website. You can load a CSV instead.';
+  }
+  $('prog').textContent='';setBusy(false);
+}
+$('live').addEventListener('click',loadLive);
+$('refresh').addEventListener('click',loadLive);
+
+/* Data loading */
+function refresh(){drawCards();drawHeat();drawLine()}
+function setData(text,save){
+  const nd=build(parseCSV(text));D=nd;curText=text;
+  gsel.innerHTML='<option value="ALL">All districts</option>'+D.districts.map(d=>'<option value="'+d+'">'+nm(d)+'</option>').join('');
+  const last=D.years[D.years.length-1];
+  $('sub').textContent=D.districts.length+' districts, '+D.years[0]+'–'+last+'. Daily values come from NASA POWER, and each month shows its hottest day.';
+  $('loader').hidden=true;$('app').hidden=false;
+  if(save){try{localStorage.setItem(KEY,text)}catch(e){}}
+  refresh();
+}
+function load(text){try{setData(text,true);$('err').textContent=''}catch(e){$('err').textContent=e.message}}
+function readFile(f){if(!f)return;const r=new FileReader();r.onload=()=>load(String(r.result));r.onerror=()=>{$('err').textContent='That file could not be read.'};r.readAsText(f)}
+$('pick').addEventListener('click',()=>$('file').click());
+$('replace').addEventListener('click',()=>$('file').click());
+$('reset').addEventListener('click',()=>{try{localStorage.removeItem(KEY)}catch(e){}D=null;geo=null;$('app').hidden=true;$('loader').hidden=false;$('err').textContent='';$('sub').textContent='Load live NASA POWER data or your own CSV to build the charts.'});
+$('file').addEventListener('change',e=>{readFile(e.target.files[0]);e.target.value=''});
+const dz=$('drop');
+['dragenter','dragover'].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.add('over')}));
+['dragleave','drop'].forEach(n=>dz.addEventListener(n,e=>{e.preventDefault();dz.classList.remove('over')}));
+dz.addEventListener('drop',e=>readFile(e.dataTransfer.files[0]));
+gsel.addEventListener('change',refresh);
+try{window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(D)drawLine()})}catch(e){}
+let rz=0;window.addEventListener('resize',()=>{if(!D)return;cancelAnimationFrame(rz);rz=requestAnimationFrame(()=>{drawHeat();drawLine()})});
+$('savecopy').addEventListener('click',()=>{
+  if(!curText)return;
+  const csv=curText.replace(/<\/script/gi,'<\\/script');
+  const html=SRC.replace(/(<script type="text\/csv" id="embedded">)[\s\S]*?(<\/script>)/,(m,a,b)=>a+'\n'+csv+'\n'+b);
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download='sindh_heat_dashboard_with_data.html';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+});
+(function(){
+  const emb=$('embedded').textContent.trim();
+  if(emb){try{setData(emb,false);return}catch(e){$('err').textContent='The data saved in this file could not be read: '+e.message}}
+  try{const t=localStorage.getItem(KEY);if(t)setData(t,false)}catch(e){try{localStorage.removeItem(KEY)}catch(e2){}}
+})();
+if(!D)loadLive();
+})();
+</script>
+</body>
+</html>
